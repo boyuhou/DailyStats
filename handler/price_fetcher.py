@@ -19,8 +19,8 @@ class PriceFetcher(object):
             old_price = pd.read_csv(file_path, index_col=0, parse_dates=True)
             s = str(self.start_date)
             old_price = old_price[old_price.index < pd.datetime(year=int(s[0:4]), month=int(s[4:6]), day=int(s[6:8]))]
-
-        return pd.concat([old_price, price])
+            return pd.concat([old_price, price])
+        return price
 
     def save_price(self, price_df):
         price_df.to_csv(self._get_ticker_filename())
@@ -38,10 +38,10 @@ class PriceFetcher(object):
                 self.start_date = int((last_date_d + timedelta(days=1)).strftime('%Y%m%d'))
 
     def _get_ticker_filename(self):
-        return os.path.join(self.price_folder, self.ticker, '.csv')
+        return os.path.join(self.price_folder, self.ticker + '.csv')
 
     def _get_yahoo_price(self):
-        return web.get_data_yahoo(self.ticker, self.start_date, self.end_date)
+        return web.get_data_yahoo(self.ticker, str(self.start_date), str(self.end_date))
 
     def _get_google_price(self):
         return web.get_data_google(self.ticker, self.start_date, self.end_date)
