@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 import pandas as pd
 import pandas_datareader.data as web
+from handler.util import Helper
 
 
 class PriceFetcher(object):
@@ -14,7 +15,7 @@ class PriceFetcher(object):
     def get_price(self):
         price = self._get_yahoo_price()
 
-        file_path = self._get_ticker_filename()
+        file_path = Helper.get_ticker_filename(self.price_folder, self.ticker)
         if os.path.exists(file_path):
             old_price = pd.read_csv(file_path, index_col=0, parse_dates=True)
             s = str(self.start_date)
@@ -23,10 +24,10 @@ class PriceFetcher(object):
         return price
 
     def save_price(self, price_df):
-        price_df.to_csv(self._get_ticker_filename())
+        price_df.to_csv(Helper.get_ticker_filename(self.price_folder, self.ticker))
 
     def get_request_date_range(self):
-        file_path = self._get_ticker_filename()
+        file_path = Helper.get_ticker_filename(self.price_folder, self.ticker)
         if os.path.exists(file_path):
             price_df = pd.read_csv(file_path, index_col=0, parse_dates=True)
             last_date_d = price_df.index.tolist()[-1].date()
@@ -36,9 +37,6 @@ class PriceFetcher(object):
                 self.end_date = last_date
             else:
                 self.start_date = int((last_date_d + timedelta(days=1)).strftime('%Y%m%d'))
-
-    def _get_ticker_filename(self):
-        return os.path.join(self.price_folder, self.ticker + '.csv')
 
     def _get_yahoo_price(self):
         return web.get_data_yahoo(self.ticker, str(self.start_date), str(self.end_date))

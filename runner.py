@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 import json
 from handler.price_fetcher import PriceFetcher
+from handler.factor_builder import FactorBuilder
 
 if __name__ == '__main__':
     int_today = int(datetime.datetime.today().strftime('%Y%m%d'))
@@ -13,21 +14,39 @@ if __name__ == '__main__':
     parser.add_argument('--end_date', type=int, default=int_today, help='end date')
     args = parser.parse_args()
 
-    if args.type.upper() == 'PRICE':
-        with open('config.json') as config_file:
-            configs = json.load(config_file)
+    with open('config.json') as config_file:
+        configs = json.load(config_file)
         etf_list = pd.read_csv(configs['ETF'], index_col=0).index.tolist()
         stock_list = pd.read_csv(configs['STOCK'], index_col=0).index.tolist()
-
+    if args.type.upper() == 'PRICE':
+        print('Processing ETF...')
         for etf in etf_list:
+            print('Processing ETF: ' + etf)
             fetcher = PriceFetcher(etf, args.start_date, args.end_date, configs['EtfPriceFolder'])
             price_df = fetcher.get_price()
             fetcher.save_price(price_df)
+        print('Processing STOCK...')
         for stock in stock_list:
+            print('Processing STOCK: ' + stock)
             fetcher = PriceFetcher(stock, args.start_date, args.end_date, configs['StockPriceFolder'])
             price_df = fetcher.get_price()
             fetcher.save_price(price_df)
-
-
+    elif args.type.upper() == 'BUILD':
+        etf_list = pd.read_csv(configs['ETF'], index_col=0).index.tolist()
+        stock_list = pd.read_csv(configs['STOCK'], index_col=0).index.tolist()
+        print('Processing ETF...')
+        for etf in etf_list:
+            print('Processing ETF: ' + etf)
+            builder = FactorBuilder(etf, configs['EtfFactorFolder'], configs['EtfPriceFolder'])
+            builder.build_factors()
+            builder.save_factors()
+        print('Processing STOCK...')
+        for stock in stock_list:
+            print('Processing STOCK: ' + stock)
+            builder = FactorBuilder(stock, configs['StockFactorFolder'], configs['StockPriceFolder'])
+            builder.build_factors()
+            builder.save_factors()
+    else:
+        print('Nothing to do....')
 
 
