@@ -1,8 +1,8 @@
 {
   "ETF": "C:\\temp\\ETF.csv",
   "STOCK": "C:\\temp\\Stock.csv",
-  "EtfPriceFolder": "C:\\temp\\price\\ETF",
-  "StockPriceFolder": "C:\\temp\\price\\STOCK",
-  "EtfFactorFolder": "C:\\temp\\factor\\ETF",
-  "StockFactorFolder": "C:\\temp\\factor\\STOCK"
+  "EtfPriceFolder": "C:\\temp\\daily\\price\\ETF",
+  "StockPriceFolder": "C:\\temp\\daily\\price\\STOCK",
+  "EtfFactorFolder": "C:\\temp\\daily\\factor\\ETF",
+  "StockFactorFolder": "C:\\temp\\daily\\factor\\STOCK"
 }
