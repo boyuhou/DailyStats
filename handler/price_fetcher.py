@@ -54,3 +54,22 @@ class PriceFetcher(object):
                     'gap_price': gap_price.ix[gap_price.index]
                 }
 
+
+class ForexTesterPriceHandler(object):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def to_forex_file(input_path, output_file, start_date):
+        price_df = pd.read_csv(input_path, parse_dates=True, index_col=0)
+        price_df = price_df.loc[price_df.index >= pd.to_datetime(start_date)]
+        price_df.to_csv(
+            output_file,
+            date_format='%Y%m%d %H%M%S',
+            index_label= 'Date Time',
+            header=['Open', 'High', 'Low', 'Close', 'Volume']
+        )
+        with open(output_file, 'r') as data:
+            records = data.readlines()
+        with open(output_file, 'w') as data:
+            data.writelines([record.replace(' ', ',') for record in records])
