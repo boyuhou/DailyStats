@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 import json
 from handler.price_fetcher import PriceFetcher
-from handler.factor_builder import FactorBuilder
+from handler.factor_builder import DailyFactorBuilder
 
 if __name__ == '__main__':
     int_today = int(datetime.datetime.today().strftime('%Y%m%d'))
@@ -37,15 +37,15 @@ if __name__ == '__main__':
         print('Processing ETF...')
         for etf in etf_list:
             print('Processing ETF: ' + etf)
-            builder = FactorBuilder(etf, configs['EtfFactorFolder'], configs['EtfPriceFolder'])
-            builder.build_factors()
-            builder.save_factors()
+            builder = DailyFactorBuilder(etf, configs['EtfFactorFolder'], configs['EtfPriceFolder'])
+            builder.build_daily_factors()
+            builder.save_daily_factors()
         print('Processing STOCK...')
         for stock in stock_list:
             print('Processing STOCK: ' + stock)
-            builder = FactorBuilder(stock, configs['StockFactorFolder'], configs['StockPriceFolder'])
-            builder.build_factors()
-            builder.save_factors()
+            builder = DailyFactorBuilder(stock, configs['StockFactorFolder'], configs['StockPriceFolder'])
+            builder.build_daily_factors()
+            builder.save_daily_factors()
     else:
         print('Nothing to do....')
 
