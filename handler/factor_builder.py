@@ -7,7 +7,6 @@ from handler.util import Helper
 MIN_LOOKBACK_DAYS = 30
 MIN_LOOKBACK_INTRADAY_PERIOD = 270
 
-
 class DailyFactorBuilder(object):
     def __init__(self, ticker, factor_folder, price_folder):
         self.price_df = pd.read_csv(Helper.get_ticker_filename(price_folder, ticker), index_col=0, parse_dates=True)
@@ -61,12 +60,14 @@ class DailyFactorBuilder(object):
 
 class IntradayFactorBuilder(object):
     FACTOR_LIST = ['RegLine10', 'RegLine30', 'RegLine90', 'RegLine270']
+    DATETIME_FORMAT = '%Y%m%d %H%M%S'
+    REG_MODEL = linear_model.LinearRegression()
 
     def __init__(self, ticker, factor_folder, price_folder):
         self.price_df = pd.read_csv(Helper.get_ticker_filename(price_folder, ticker), index_col=0, parse_dates=True)
         self.factor_path = Helper.get_ticker_filename(factor_folder, ticker)
         self.factor_df = self._init_factor()
-        self.regr = linear_model.LinearRegression()
+
 
     def _get_todo_index_time(self):
         if os.path.exists(self.factor_path):
@@ -84,15 +85,18 @@ class IntradayFactorBuilder(object):
     def build_intraday_factor(self):
         process_time_index = self._get_todo_index_time()
         raw_data = self._get_raw_data(process_time_index)
-        raw_data['RegLine10'] = raw_data['Close'].rolling(window=10).apply(self._linear_regression_value())
-        raw_data['RegLine30'] = raw_data['Close'].rolling(window=30).apply(self._linear_regression_value())
-        raw_data['RegLine90'] = raw_data['Close'].rolling(window=90).apply(self._linear_regression_value())
-        raw_data['RegLine270'] = raw_data['Close'].rolling(window=270).apply(self._linear_regression_value())
+        raw_data['RegLine10'] = raw_data['Close'].rolling(window=10).apply(IntradayFactorBuilder.linear_regression_value)
+        raw_data['RegLine30'] = raw_data['Close'].rolling(window=30).apply(IntradayFactorBuilder.linear_regression_value)
+        raw_data['RegLine90'] = raw_data['Close'].rolling(window=90).apply(IntradayFactorBuilder.linear_regression_value)
+        raw_data['RegLine270'] = raw_data['Close'].rolling(window=270).apply(IntradayFactorBuilder.linear_regression_value)
         processed_df = raw_data.loc[raw_data.index.isin(process_time_index), IntradayFactorBuilder.FACTOR_LIST]
         self.factor_df = pd.concat([self.factor_df, processed_df])
 
     def save_intraday_factor(self):
-        self.factor_df.to_csv(self.factor_path)
+        self.factor_df[IntradayFactorBuilder.FACTOR_LIST].to_csv(
+            self.factor_path,
+            date_format=IntradayFactorBuilder.DATETIME_FORMAT
+        )
 
     def _init_factor(self):
         if os.path.exists(self.factor_path):
@@ -103,8 +107,9 @@ class IntradayFactorBuilder(object):
                 empty_df[factor] = np.nan
             return empty_df
 
-    def _linear_regression_value(self, data_list):
+    @staticmethod
+    def linear_regression_value(data_list):
         data_size = data_list.size
         x_axis = np.array([range(data_list.size)]).T
-        self.regr.fit(x_axis, np.array(data_list))
-        return self.regr.predict(np.array(data_size))[0]
+        IntradayFactorBuilder.REG_MODEL.fit(x_axis, np.array(data_list))
+        return IntradayFactorBuilder.REG_MODEL.predict(np.array(data_size))[0]
