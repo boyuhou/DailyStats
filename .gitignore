@@ -226,5 +226,5 @@ setup.ini
 # ipython
 .ipynb_checkpoints
 
-.pyproj
-.sln
+*.pyproj
+*.sln
