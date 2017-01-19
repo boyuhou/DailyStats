@@ -1,0 +1,1 @@
+python intraday_runner.py --universe c:\temp\ETF.csv
