@@ -8,7 +8,7 @@ from handler.factor_builder import DailyFactorBuilder
 if __name__ == '__main__':
     int_today = int(datetime.datetime.today().strftime('%Y%m%d'))
     parser = argparse.ArgumentParser(description='Daily Report Generator')
-    parser.add_argument('type', metavar='S', type=str, nargs='?', default='price', help='Action (price, indicator) to '
+    parser.add_argument('type', metavar='S', type=str, nargs='?', default='price', help='Action (price, build) to '
                                                                                         'run')
     parser.add_argument('--start_date', type=int, default=int_today, help='start date')
     parser.add_argument('--end_date', type=int, default=int_today, help='end date')
