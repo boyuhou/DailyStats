@@ -46,8 +46,7 @@ def main(ticker, outdir, indir, debug, universe):
         try:
             log.info(str.format("Processing {0} ({1} out of {2})", instrument, i + 1, len(instruments)))
             builder = IntradayFactorBuilder(instrument, outdir, indir)
-            builder.build_intraday_factor()
-            builder.save_intraday_factor()
+            builder.build_intraday_factors()
         except Exception as e:
             log.error('Exception during calculating, continuing', exc_info=e)
 

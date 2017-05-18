@@ -6,5 +6,7 @@ class Helper(object):
         pass
 
     @staticmethod
-    def get_ticker_filename(folder_name, ticker):
-        return os.path.join(folder_name, ticker + '.csv')
+    def get_filename(folder_name, ticker, factor=None):
+        if factor is None:
+            return os.path.join(folder_name, ticker + '.csv')
+        return os.path.join(folder_name, ticker + '_' + factor + '.csv')
