@@ -66,6 +66,9 @@ class IntradayFactorBuilder(object):
                    'BB3Up',
                    'BB3Down',
                    'BBMean',
+                   'DragonUp',
+                   'DragonDown',
+                   'DragonMean',
                    'RegLine10',
                    'RegLine30',
                    'RegLine90',
@@ -148,11 +151,14 @@ class IntradayFactorBuilder(object):
         elif factor == 'BBMean':
             raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=1)
         elif factor == 'DragonUp':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=10, n_std=0.5)
+            raw_data['DragonUp'] = raw_data['BBUp']
         elif factor == 'DragonDown':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=10, n_std=0.5)
+            raw_data['DragonDown'] = raw_data['BBDown']
         elif factor == 'DragonMean':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=10, n_std=0.5)
+            raw_data['DragonMean'] = raw_data['BBMean']
         else:
             pass
         return raw_data
