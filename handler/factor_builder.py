@@ -59,7 +59,17 @@ class DailyFactorBuilder(object):
 
 
 class IntradayFactorBuilder(object):
-    FACTOR_LIST = ['RegLine10', 'RegLine30', 'RegLine90', 'RegLine270']
+    FACTOR_LIST = ['BB1Up',
+                   'BB1Down',
+                   'BB2Up',
+                   'BB2Down',
+                   'BB3Up',
+                   'BB3Down',
+                   'BBMean',
+                   'RegLine10',
+                   'RegLine30',
+                   'RegLine90',
+                   'RegLine270']
     DATETIME_FORMAT = '%Y%m%d %H%M%S'
     REG_MODEL = linear_model.LinearRegression()
 
@@ -71,7 +81,8 @@ class IntradayFactorBuilder(object):
     def _get_todo_index_time(self, factor):
         factor_path = Helper.get_filename(self.factor_folder, self.ticker, factor)
         if os.path.exists(factor_path):
-            last_processed_date = self.factor_df.index.tolist()[-1]
+            factor_df = self._init_factor(factor)
+            last_processed_date = factor_df.index.tolist()[-1]
             return self.price_df.index[self.price_df.index > last_processed_date]
         else:
             return self.price_df.index
@@ -95,6 +106,8 @@ class IntradayFactorBuilder(object):
         for factor in IntradayFactorBuilder.FACTOR_LIST:
             print('Building factor: ' + factor)
             factor_df = self._build_intraday_factor(factor)
+            if factor_df is None:
+                continue
             factor_path = Helper.get_filename(self.factor_folder, self.ticker, factor)
             factor_df.to_csv(
                 factor_path,
@@ -115,19 +128,25 @@ class IntradayFactorBuilder(object):
             raw_data['RegLine270'] = raw_data['Close'].rolling(window=270).apply(
                 IntradayFactorBuilder.linear_regression_value)
         elif factor == 'BB1Up':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=1)
+            raw_data['BB1Up'] = raw_data['BBUp']
         elif factor == 'BB1Down':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=1)
+            raw_data['BB1Down'] = raw_data['BBDown']
         elif factor == 'BB2Up':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=2)
+            raw_data['BB2Up'] = raw_data['BBUp']
         elif factor == 'BB2Down':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=2)
+            raw_data['BB2Down'] = raw_data['BBDown']
         elif factor == 'BB3Up':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=3)
+            raw_data['BB3Up'] = raw_data['BBUp']
         elif factor == 'BB3Down':
-            pass
-        elif factor == 'BB3Mean':
-            pass
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=3)
+            raw_data['BB3Down'] = raw_data['BBDown']
+        elif factor == 'BBMean':
+            raw_data = IntradayFactorBuilder.bollinger_bands(raw_data, period=30, n_std=1)
         elif factor == 'DragonUp':
             pass
         elif factor == 'DragonDown':
@@ -144,9 +163,8 @@ class IntradayFactorBuilder(object):
             return pd.read_csv(factor_path, index_col=0, parse_dates=True)
         else:
             empty_df = self.price_df[self.price_df['Close'] < -1]
-            for factor in IntradayFactorBuilder.FACTOR_LIST:
-                empty_df[factor] = np.nan
-            return empty_df
+            empty_df[factor] = np.nan
+            return empty_df[[factor]]
 
     @staticmethod
     def linear_regression_value(data_list):
@@ -155,6 +173,10 @@ class IntradayFactorBuilder(object):
         IntradayFactorBuilder.REG_MODEL.fit(x_axis, np.array(data_list))
         return IntradayFactorBuilder.REG_MODEL.predict(np.array(data_size))[0]
 
-    # @staticmethod
-    # def bollinger_bands(df, period=30, n_std=2):
-
+    @staticmethod
+    def bollinger_bands(df, period=30, n_std=2):
+        df['BBMean'] = df['Close'].rolling(period).mean()
+        df['BBStd'] = df['Close'].rolling(period).std()
+        df['BBUp'] = df['BBMean'] + n_std * df['BBStd']
+        df['BBDown'] = df['BBMean'] - n_std * df['BBStd']
+        return df
